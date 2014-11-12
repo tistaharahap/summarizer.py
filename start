@@ -7,7 +7,7 @@ from flask import Flask, render_template, jsonify, request
 from sumy.parsers.html import HtmlParser
 from sumy.parsers.plaintext import PlaintextParser
 from sumy.nlp.tokenizers import Tokenizer
-from sumy.summarizers.lsa import LsaSummarizer as Summarizer
+from sumy.summarizers.luhn import LuhnSummarizer as Summarizer
 from sumy.nlp.stemmers import Stemmer
 from sumy.utils import get_stop_words
 
@@ -17,7 +17,7 @@ import json
 SENTENCES_COUNT = 3
 LANGUAGE = 'english'
 HOST, PORT = ('127.0.0.1', 5000)
-DEBUG = False
+DEBUG = True
 
 SW = '/Users/Tista/nltk_data/corpora/stopwords/indo'
 
