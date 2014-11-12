@@ -13,6 +13,8 @@ from sumy.utils import get_stop_words
 
 from werkzeug.wrappers import Response
 import json
+import math
+
 
 SENTENCES_COUNT = 3
 LANGUAGE = 'english'
@@ -30,23 +32,41 @@ def get_indo_stopwords():
         c = f.read()
         return [item for item in c.split('\n') if item != '']
 
-def parse_url(url):
-    parser = HtmlParser.from_url(url, Tokenizer(LANGUAGE))
+def parse(text, parser):
     stemmer = Stemmer(LANGUAGE)
-
     summarizer = Summarizer(stemmer)
+
+    def _get_best_sentences(sentences, count, rating, *args, **kwargs):
+        from operator import attrgetter
+        from collections import namedtuple
+        from sumy.utils import ItemsCount
+
+        SentenceInfo = namedtuple("SentenceInfo", ("sentence", "order", "rating",))
+        
+        rate = rating
+        if isinstance(rating, dict):
+            assert not args and not kwargs
+            rate = lambda s: rating[s]
+
+        infos = (SentenceInfo(s, o, rate(s, *args, **kwargs))
+            for o, s in enumerate(sentences))
+
+        infos = sorted(infos, key=attrgetter("rating"), reverse=True)
+        if not isinstance(count, ItemsCount):
+            count = ItemsCount(count)
+        infos = count(infos)
+        infos = sorted(infos, key=attrgetter("order"))
+        highest = infos[0].rating
+
+        def _get_score(rating, order):
+            return round(rating / (order + 1) / highest * 100, 2)
+
+        return [{'sentence': unicode(info.sentence), 'score': _get_score(info.rating, info.order)} for info in infos]
+
+    summarizer._get_best_sentences = _get_best_sentences
     summarizer.stop_words = get_indo_stopwords()
-
-    return {'sums': [str(item) for item in summarizer(parser.document, SENTENCES_COUNT)]}
-
-def parse_txt(txt):
-    parser = PlaintextParser.from_string(txt, Tokenizer(LANGUAGE))
-    stemmer = Stemmer(LANGUAGE)
-
-    summarizer = Summarizer(stemmer)
-    summarizer.stop_words = get_indo_stopwords()
-
-    return {'sums': [str(item) for item in summarizer(parser.document, SENTENCES_COUNT)]}
+    
+    return summarizer(parser.document, SENTENCES_COUNT)
 
 def create_route(app):
     @app.route('/', methods=['GET'])
@@ -60,11 +80,19 @@ def create_route(app):
 
         if url and txt:
             return Response(json.dumps({'msg': 'Pick between URL or Text?'}),
+                            headers={'Content-Type': 'application/json'},
                             status=400)
 
-        response = parse_url(url=url) if url else parse_txt(txt=txt)
+        if url:
+            parser = HtmlParser.from_url(url, Tokenizer(LANGUAGE))
+            response = parse(url, parser)
+        else:
+            parser = PlaintextParser.from_string(txt, Tokenizer(LANGUAGE))
+            response = parse(txt, parser)
 
-        return jsonify(response)
+        return Response(json.dumps(response),
+                        headers={'Content-Type': 'application/json'},
+                        status=200)
 
 
 if __name__ == '__main__':
