@@ -21,7 +21,7 @@
             Text the box.
         </div>
         <div class="large-9 columns">
-            <textarea id="txt" style="min-height: 200px"></textarea>
+            <textarea id="txt" style="min-height: 200px" placeholder="Better &amp; more consistent results by using this textbox.."></textarea>
         </div>
     </div>
 
@@ -54,7 +54,7 @@
 </section>
 
 <footer class="row" style="margin-top: 100px;">
-    <div class="large-12 columns text-center" style="font-size: 0.7em">
+    <div class="large-12 columns text-center" style="font-size: 0.7em; padding: 20px 0;">
         An experiment by <a href="https://twitter.com/tista" target="_blank">@tista</a>. <a href="https://bango29.com" target="_blank">https://bango29.com</a>
     </div>
 </footer>
@@ -104,8 +104,8 @@ $(document).ready(function() {
                 return;
 
             $result.html('');
-            data.sums.forEach(function(sentence) {
-                $result.append('<p>'+sentence+'</p>');
+            data.forEach(function(item) {
+                $result.append('<p>'+item.sentence+' - <b>Score: '+item.score+'%</b></p>');
             });
         });
 
