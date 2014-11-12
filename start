@@ -36,7 +36,6 @@ def parse_url(url):
 
     summarizer = Summarizer(stemmer)
     summarizer.stop_words = get_indo_stopwords()
-    print(summarizer.stop_words)
 
     return {'sums': [str(item) for item in summarizer(parser.document, SENTENCES_COUNT)]}
 
