@@ -1,0 +1,123 @@
+<!doctype html>
+<html>
+<head>
+    <title>Summarizer</title>
+
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/foundation/5.0.2/css/foundation.min.css">
+    <script src="//cdn.jsdelivr.net/foundation/5.0.2/js/vendor/custom.modernizr.js"></script>
+    <script>window.Modernizr || document.write('<script src="/local/custom.modernizr.js"><\/script>')</script>
+</head>
+<body>
+
+<header class="row">
+    <div class="large-12 columns">
+        <h1>Summarizer</h1>
+    </div>
+</header>
+
+<form id="belly" action="/sum" method="post">
+    <div class="row">
+        <div class="large-3 columns">
+            Text the box.
+        </div>
+        <div class="large-9 columns">
+            <textarea id="txt" style="min-height: 200px"></textarea>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="large-3 columns">
+            Or a URL.
+        </div>
+        <div class="large-9 columns">
+            <input type="text" id="url" placeholder="http://dailysocial.net" />
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="large-3 columns"></div>
+        <div class="large-9 columns">
+            <button id="btn">Sum!</button>
+        </div>
+    </div>
+</form>
+
+<section id="sum">
+    <div class="row">
+        <div class="large-12 columns">
+            <h4 class="subheader">Summarized Text</h4>
+        </div>
+    </div>
+    <div class="row">
+        <div class="large-12 columns" id="result"></div>
+    </div>
+</section>
+
+<footer class="row" style="margin-top: 100px;">
+    <div class="large-12 columns text-center" style="font-size: 0.7em">
+        An experiment by <a href="https://twitter.com/tista" target="_blank">@tista</a>. <a href="https://bango29.com" target="_blank">https://bango29.com</a>
+    </div>
+</footer>
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+<script>window.$ || document.write('<script src="/local/jquery.min.js"><\/script>')</script>
+<script src="//cdn.jsdelivr.net/foundation/5.0.2/js/foundation.min.js"></script>
+<script>window.Foundation || document.write('<script src="/local/foundation.min.js"><\/script>')</script>
+<script>$(document).foundation();</script>
+<script>
+$(document).ready(function() {
+    var bodyColor = $('body').css('color');
+    if(bodyColor != 'rgb(34, 34, 34)') {
+    $("head").prepend('<link rel="stylesheet" href="/local/foundation.min.css">');}
+
+    $('button#btn').click(function(e) {
+        e.preventDefault();
+
+        var txt, url, $modal, data, $result;
+        txt = $('textarea#txt').val();
+        url = $('input#url').val();
+        $modal = $('#warning-modal');
+        $result = $('div#result')
+
+        $result.html('<p class="text-center"> <i>One moment..</i> </p>')
+
+        if(url && txt) {
+            $modal.foundation('reveal', 'open');
+            $('a.close-reveal-modal').click(function(e) {
+                $modal.foundation('reveal', 'close');
+            });
+        }
+        if(!url && !txt) {
+            $modal.foundation('reveal', 'open');
+            $('a.close-reveal-modal').click(function(e) {
+                $modal.foundation('reveal', 'close');
+            });
+        }
+
+        data = {
+            url: url,
+            txt: txt
+        };
+
+        $.post('/sum', data, function(data) {
+            if(!data)
+                return;
+
+            $result.html('');
+            data.sums.forEach(function(sentence) {
+                $result.append('<p>'+sentence+'</p>');
+            });
+        });
+
+        return false;
+    });
+});
+</script>
+<div id="warning-modal" class="reveal-modal" data-reveal>
+  <h2>Sorry</h2>
+  <p class="lead">Bad Input</p>
+  <p>Please choose between text or url, not both.</p>
+  <a class="close-reveal-modal">&#215;</a>
+</div>
+</body>
+</html>

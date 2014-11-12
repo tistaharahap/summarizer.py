@@ -1,0 +1,76 @@
+#!/usr/bin/env python
+from __future__ import absolute_import
+from __future__ import division, print_function, unicode_literals
+
+from flask import Flask, render_template, jsonify, request
+
+from sumy.parsers.html import HtmlParser
+from sumy.parsers.plaintext import PlaintextParser
+from sumy.nlp.tokenizers import Tokenizer
+from sumy.summarizers.lsa import LsaSummarizer as Summarizer
+from sumy.nlp.stemmers import Stemmer
+from sumy.utils import get_stop_words
+
+from werkzeug.wrappers import Response
+import json
+
+SENTENCES_COUNT = 3
+LANGUAGE = 'english'
+HOST, PORT = ('127.0.0.1', 5000)
+DEBUG = False
+
+SW = '/Users/Tista/nltk_data/corpora/stopwords/indo'
+
+def create_app():
+    app = Flask(__name__)
+    return app
+
+def get_indo_stopwords():
+    with open(SW, 'r') as f:
+        c = f.read()
+        return [item for item in c.split('\n') if item != '']
+
+def parse_url(url):
+    parser = HtmlParser.from_url(url, Tokenizer(LANGUAGE))
+    stemmer = Stemmer(LANGUAGE)
+
+    summarizer = Summarizer(stemmer)
+    summarizer.stop_words = get_indo_stopwords()
+    print(summarizer.stop_words)
+
+    return {'sums': [str(item) for item in summarizer(parser.document, SENTENCES_COUNT)]}
+
+def parse_txt(txt):
+    parser = PlaintextParser.from_string(txt, Tokenizer(LANGUAGE))
+    stemmer = Stemmer(LANGUAGE)
+
+    summarizer = Summarizer(stemmer)
+    summarizer.stop_words = get_indo_stopwords()
+
+    return {'sums': [str(item) for item in summarizer(parser.document, SENTENCES_COUNT)]}
+
+def create_route(app):
+    @app.route('/', methods=['GET'])
+    def home():
+        return render_template('index.html')
+
+    @app.route('/sum', methods=['POST'])
+    def sum():
+        url = request.form.get('url')
+        txt = request.form.get('txt')
+
+        if url and txt:
+            return Response(json.dumps({'msg': 'Pick between URL or Text?'}),
+                            status=400)
+
+        response = parse_url(url=url) if url else parse_txt(txt=txt)
+
+        return jsonify(response)
+
+
+if __name__ == '__main__':
+    app = create_app();
+    create_route(app=app)
+    app.run(host=HOST,
+            port=PORT,
+            debug=DEBUG)
