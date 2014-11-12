@@ -16,10 +16,10 @@ import json
 
 SENTENCES_COUNT = 3
 LANGUAGE = 'english'
-HOST, PORT = ('127.0.0.1', 5000)
+HOST, PORT = ('127.0.0.1', 5111)
 DEBUG = False
 
-SW = '/Users/Tista/nltk_data/corpora/stopwords/indo'
+SW = '/root/nltk_data/corpora/stopwords/indo'
 
 def create_app():
     app = Flask(__name__)
