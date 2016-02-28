@@ -21,7 +21,7 @@ LANGUAGE = 'english'
 HOST, PORT = ('0.0.0.0', 5111)
 DEBUG = False
 
-SW = '/root/nltk_data/corpora/stopwords/indo'
+SW = 'stopwords_indo'
 
 def create_app():
     app = Flask(__name__)
