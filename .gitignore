@@ -73,3 +73,4 @@ target/
 # sftp configuration file
 sftp-config.json
 
+nltk-data.zip
