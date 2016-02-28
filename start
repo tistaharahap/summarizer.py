@@ -18,7 +18,7 @@ import math
 
 SENTENCES_COUNT = 3
 LANGUAGE = 'english'
-HOST, PORT = ('127.0.0.1', 5111)
+HOST, PORT = ('0.0.0.0', 5111)
 DEBUG = False
 
 SW = '/root/nltk_data/corpora/stopwords/indo'
