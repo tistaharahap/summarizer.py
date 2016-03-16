@@ -6,20 +6,21 @@ from flask import Flask, render_template, jsonify, request
 
 from sumy.parsers.html import HtmlParser
 from sumy.parsers.plaintext import PlaintextParser
-from sumy.nlp.tokenizers import Tokenizer
 from sumy.summarizers.luhn import LuhnSummarizer as Summarizer
+from sumy.nlp.tokenizers import Tokenizer
 from sumy.nlp.stemmers import Stemmer
 from sumy.utils import get_stop_words
 
 from werkzeug.wrappers import Response
 import json
 import math
+import re
 
 
 SENTENCES_COUNT = 3
 LANGUAGE = 'english'
 HOST, PORT = ('0.0.0.0', 5111)
-DEBUG = False
+DEBUG = True
 
 SW = 'stopwords_indo'
 
@@ -32,6 +33,9 @@ def get_indo_stopwords():
         c = f.read()
         return [item for item in c.split('\n') if item != '']
 
+def normalize_text(text):
+    return re.sub('[^0-9a-zA-Z]+', '', text.replace('\xe2', ''))
+
 def parse(text, parser):
     stemmer = Stemmer(LANGUAGE)
     summarizer = Summarizer(stemmer)
@@ -42,7 +46,7 @@ def parse(text, parser):
         from sumy.utils import ItemsCount
 
         SentenceInfo = namedtuple("SentenceInfo", ("sentence", "order", "rating",))
-        
+
         rate = rating
         if isinstance(rating, dict):
             assert not args and not kwargs
@@ -61,12 +65,13 @@ def parse(text, parser):
         def _get_score(rating, order):
             return round(rating / (order + 1) / highest * 100, 2)
 
-        return [{'sentence': unicode(info.sentence), 'score': _get_score(info.rating, info.order)} for info in infos]
+        return [{'sentence': re.sub(r'[^\x00-\x7F]+', '', unicode(info.sentence)), 'score': _get_score(info.rating, info.order)} for info in infos]
 
     summarizer._get_best_sentences = _get_best_sentences
     summarizer.stop_words = get_indo_stopwords()
-    
+
     return summarizer(parser.document, SENTENCES_COUNT)
+
 
 def create_route(app):
     @app.route('/', methods=['GET'])
@@ -83,12 +88,16 @@ def create_route(app):
                             headers={'Content-Type': 'application/json'},
                             status=400)
 
+        tokenizer = Tokenizer(LANGUAGE)
+
         if url:
-            parser = HtmlParser.from_url(url, Tokenizer(LANGUAGE))
+            parser = HtmlParser.from_url(url, tokenizer)
             response = parse(url, parser)
         else:
-            parser = PlaintextParser.from_string(txt, Tokenizer(LANGUAGE))
+            parser = PlaintextParser.from_string(txt, tokenizer)
             response = parse(txt, parser)
+
+        print(response)
 
         return Response(json.dumps(response),
                         headers={'Content-Type': 'application/json'},
@@ -96,7 +105,7 @@ def create_route(app):
 
 
 if __name__ == '__main__':
-    app = create_app();
+    app = create_app()
     create_route(app=app)
     app.run(host=HOST,
             port=PORT,

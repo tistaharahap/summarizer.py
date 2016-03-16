@@ -4,7 +4,7 @@
     <title>Summarizer</title>
 
     <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-    
+
     <meta name="twitter:card" value="summary_large_image"/>
     <meta name="twitter:site" value="@tista"/>
     <meta name="twitter:creator" value="@tista"/>
@@ -19,7 +19,7 @@
     <meta property="og:url" content="https://sum.bango29.com"/>
     <meta property="og:site_name" content="Bango29"/>
     <meta property="og:image" content="https://bango29.com/content/images/2013/Dec/1387150323_google_code-1.png"/>
-     
+
     <link rel="stylesheet" href="//cdn.jsdelivr.net/foundation/5.0.2/css/foundation.min.css">
     <script src="//cdn.jsdelivr.net/foundation/5.0.2/js/vendor/custom.modernizr.js"></script>
     <script>window.Modernizr || document.write('<script src="/local/custom.modernizr.js"><\/script>')</script>
@@ -32,6 +32,13 @@
         ga('create', 'UA-37549095-2', 'auto');
         ga('send', 'pageview');
     </script>
+
+    <style type="text/css">
+        p#summarized-text {
+            color: #000;
+            font-size: 1.5em;
+        }
+    </style>
 </head>
 <body>
 
@@ -160,9 +167,16 @@ $(document).ready(function() {
             ga('send', 'event', 'sum_btn', 'click', 'Success');
 
             $result.html('');
+            var summarized = '';
+            var breakdown = '';
             data.forEach(function(item) {
-                $result.append('<p>'+item.sentence+' - <b>Score: '+item.score+'%</b></p>');
+                breakdown += '<p>'+item.sentence+' - <b>Score: '+item.score+'%</b></p>'
+                summarized += item.sentence + ' ';
             });
+
+            $result.append('<p id="summarized-text">'+summarized+'</p>')
+            $result.append('<h5>Scores</h5>')
+            $result.append(breakdown)
         });
 
         return false;
