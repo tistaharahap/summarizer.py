@@ -74,3 +74,4 @@ target/
 sftp-config.json
 
 nltk-data.zip
+.DS_Store

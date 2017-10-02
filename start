@@ -3,6 +3,7 @@ from __future__ import absolute_import
 from __future__ import division, print_function, unicode_literals
 
 from flask import Flask, render_template, jsonify, request
+from os import environ
 
 from sumy.parsers.html import HtmlParser
 from sumy.parsers.plaintext import PlaintextParser
@@ -19,8 +20,15 @@ import re
 
 SENTENCES_COUNT = 3
 LANGUAGE = 'english'
-HOST, PORT = ('0.0.0.0', 5111)
-DEBUG = True
+
+HOST = environ.get('APP_HOST')
+HOST = HOST if HOST else '0.0.0.0'
+
+PORT = environ.get('APP_PORT')
+PORT = PORT if PORT else 5000
+
+DEBUG = environ.get('APP_DEBUG')
+DEBUG = DEBUG == '1'
 
 SW = 'stopwords_indo'
 
@@ -65,7 +73,13 @@ def parse(text, parser):
         def _get_score(rating, order):
             return round(rating / (order + 1) / highest * 100, 2)
 
-        return [{'sentence': re.sub(r'[^\x00-\x7F]+', '', unicode(info.sentence)), 'score': _get_score(info.rating, info.order)} for info in infos]
+        def _output(info):
+            return {
+                'sentence': re.sub(r'[^\x00-\x7F]+', '', unicode(info.sentence)), 
+                'score': _get_score(info.rating, info.order)
+            }
+
+        return map(_output, infos)
 
     summarizer._get_best_sentences = _get_best_sentences
     summarizer.stop_words = get_indo_stopwords()
@@ -96,8 +110,6 @@ def create_route(app):
         else:
             parser = PlaintextParser.from_string(txt, tokenizer)
             response = parse(txt, parser)
-
-        print(response)
 
         return Response(json.dumps(response),
                         headers={'Content-Type': 'application/json'},
