@@ -28,7 +28,7 @@ PORT = environ.get('APP_PORT')
 PORT = PORT if PORT else 5000
 
 DEBUG = environ.get('APP_DEBUG')
-DEBUG = DEBUG == '1'
+DEBUG = not DEBUG == '1'
 
 SW = 'stopwords_indo'
 
@@ -68,6 +68,9 @@ def parse(text, parser):
             count = ItemsCount(count)
         infos = count(infos)
         infos = sorted(infos, key=attrgetter("order"))
+        if not infos:
+            return []
+        
         highest = infos[0].rating
 
         def _get_score(rating, order):

@@ -159,8 +159,9 @@ $(document).ready(function() {
         };
 
         $.post('/sum', data, function(data) {
-            if(!data) {
+            if(!data || data.length === 0) {
                 ga('send', 'event', 'sum_btn', 'click', 'Failed');
+                $result.html('<p class="text-center">Failed getting summary..</p>')
                 return;
             }
 

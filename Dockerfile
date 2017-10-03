@@ -5,6 +5,7 @@ RUN apt-get install -y unzip
 
 COPY deps /requirements.txt
 RUN pip install -r /requirements.txt
+RUN python -c "import nltk; nltk.download('punkt')"
 
 COPY . /sum
 WORKDIR /sum
